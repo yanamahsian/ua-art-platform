@@ -1,0 +1,60 @@
+name: Create artist profile
+description: Register as an artist/creator (UA/EN)
+title: "Artist: "
+labels: ["artist-submission"]
+body:
+  - type: input
+    id: displayName
+    attributes:
+      label: Display name
+      placeholder: "Your name / studio name"
+    validations:
+      required: true
+
+  - type: input
+    id: city
+    attributes:
+      label: City (optional)
+      placeholder: "Kyiv / Lviv / Odesa ..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: bio_ua
+    attributes:
+      label: Bio (UA)
+      placeholder: "Коротко: хто ти і що робиш (без самопіару)."
+    validations:
+      required: true
+
+  - type: textarea
+    id: bio_en
+    attributes:
+      label: Bio (EN)
+      placeholder: "Short: who you are and what you do (no self-promo)."
+    validations:
+      required: true
+
+  - type: input
+    id: instagram
+    attributes:
+      label: Instagram link (optional)
+      placeholder: "https://instagram.com/..."
+    validations:
+      required: false
+
+  - type: input
+    id: website
+    attributes:
+      label: Website link (optional)
+      placeholder: "https://..."
+    validations:
+      required: false
+
+  - type: input
+    id: email
+    attributes:
+      label: Contact email (optional)
+      placeholder: "name@example.com"
+    validations:
+      required: false
