@@ -1,0 +1,65 @@
+name: Build artists.json from submissions
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  build:
+    if: contains(github.event.issue.labels.*.name, 'artist-submission') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build docs/artists.json
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // fetch all issues with label
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo,
+              state: "open",
+              labels: "artist-submission",
+              per_page: 100
+            });
+
+            function pick(body, id) {
+              // Issue form renders like: "### Display name\n\nValue"
+              const re = new RegExp(`###\\s+${id}\\s*\\n\\n([\\s\\S]*?)(\\n\\n###|$)`, "i");
+              const m = body.match(re);
+              return m ? m[1].trim() : "";
+            }
+
+            const data = issues.map(i => {
+              const b = i.body || "";
+              return {
+                displayName: pick(b, "Display name") || i.title.replace(/^Artist:\\s*/i,"").trim(),
+                city: pick(b, "City (optional)"),
+                bio_ua: pick(b, "Bio \\(UA\\)"),
+                bio_en: pick(b, "Bio \\(EN\\)"),
+                instagram: pick(b, "Instagram link \\(optional\\)"),
+                website: pick(b, "Website link \\(optional\\)"),
+                email: pick(b, "Contact email \\(optional\\)")
+              };
+            });
+
+            const fs = require("fs");
+            fs.mkdirSync("docs", { recursive: true });
+            fs.writeFileSync("docs/artists.json", JSON.stringify(data, null, 2), "utf8");
+
+      - name: Commit artists.json
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs/artists.json
+          git commit -m "Update artists.json" || echo "No changes"
+          git push
